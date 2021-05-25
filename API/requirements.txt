@@ -1,0 +1,8 @@
+flask
+Flask-MySQLdb
+PyYAML
+Werkzeug
+uuid
+flask-expects-json
+PyJWT
+
