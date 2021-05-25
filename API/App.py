@@ -59,9 +59,7 @@ def sign_up():
 def sign_in():
     data = request.json
     email = data['email']
-    print(email)
     password = data['password']
-    print(password)
     cursor = mysql.connection.cursor()
     try:
         user_data = cursor.execute('SELECT public_id, email, password, full_name, shop_name FROM User WHERE email = %s LIMIT 1;', [email])
@@ -70,9 +68,9 @@ def sign_in():
     if user_data > 0:
         detail_user = cursor.fetchall()
     else:
-        return make_response('Sign in denied, could not find specific user!', 401)
+        return make_response('Sign in denied, could not find a specific user!', 401)
     if check_password_hash(detail_user[0][2],password):
-        token = jwt.encode({'public_id':detail_user[0], 'exp':datetime.datetime.utcnow() + datetime.timedelta(days=30)}, app.config['SECRET_KEY'], algorithm='HS256')
+        token = jwt.encode({'public_id':detail_user[0][0], 'exp':datetime.datetime.utcnow() + datetime.timedelta(days=30)}, app.config['SECRET_KEY'], algorithm='HS256')
         return make_response(jsonify({'data': {'token': token,'full_name':detail_user[0][3],'shop_name':detail_user[0][4]}, 'message': 'Sign in accepted'}),200)
     return make_response('Sign in denied, password and email did not match!',401)
 
