@@ -1,4 +1,4 @@
 mysql_host: 'localhost'
 mysql_user: 'root'
-mysql_password: 'DBrakha123!'
-mysql_db: 'InfiniteStock'
+mysql_password: ''
+mysql_db: ''
