@@ -1,0 +1,1 @@
+FLASK_APP=${HOME}/API/App.py flask run
