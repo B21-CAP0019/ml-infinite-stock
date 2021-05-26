@@ -36,6 +36,9 @@ auth = {
     "required":["email","password"]
 }
 
+@app.route('/', methods=['GET'])
+def success():
+    return make_response(jsonify({"message":"Success"}), 200)
 
 @app.route('/auth/sign_up',methods=['POST'])
 @expects_json(auth)
