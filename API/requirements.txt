@@ -6,4 +6,7 @@ Werkzeug
 uuid
 flask-expects-json
 PyJWT
+scikit-learn
+pandas
+numpy
 
