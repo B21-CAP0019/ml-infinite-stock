@@ -28,12 +28,31 @@ app.config['SECRET_KEY'] = 'bangkitCapstone'
 mysql = MySQL(app)
 
 
+# Check data dari client
+auth = {
+    "type": "object",
+    "properties": {
+        "email": {
+            "type": "string",
+            "minLength": 10
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 15
+        }
+    },
+    "required": ["email", "password"]
+}
+
+
 @app.route('/', methods=['GET'])
 def success():
     return make_response(jsonify({"message": "Success"}), 200)
 
 
 @app.route('/auth/signup', methods=['POST'])
+#@expects_json(auth)
 def sign_up():
     auth = request.authorization
     if not auth or not auth.username or not auth.password:
@@ -102,7 +121,7 @@ def public_id_required(f):
 
 @app.route('/warehouse/create/goods', methods=['POST'])
 @public_id_required
-def goods_in(current_user):
+def create_goods(current_user):
     data = request.json
     goods_name = data['goods_name']
     goods_quantity = data['goods_quantity']
@@ -112,8 +131,7 @@ def goods_in(current_user):
     try:
         cursor = mysql.connection.cursor()
         query = 'INSERT INTO Goods(goods_name, goods_quantity, goods_unit, goods_price, user_id) VALUES(%s, %s, %s, %s, %s);'
-        params = (goods_name, float(goods_quantity),
-                  goods_unit, int(goods_price), int(user_id))
+        params = (goods_name, float(goods_quantity), goods_unit, int(goods_price), int(user_id))
         cursor.execute(query, params)
         mysql.connection.commit()
     except:
@@ -156,63 +174,101 @@ def get_all_goods(current_user):
     return make_response(jsonify(response), 200)
 
 
-@app.route('/warehouse/update/goods', methods=['PUT'])
+@app.route('/warehouse/update/goods/increase', methods=['PUT'])
 @public_id_required
-def goods_out(current_user):
+def goods_increase(current_user):
     data = request.json
     goods_id = data['goods_id']
     goods_name_update = data['goods_name']
     goods_qty_update = data['goods_quantity']
     goods_unit_update = data['goods_unit']
     goods_price_update = data['goods_price']
-    # Querying warehouse data
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT goods_id, goods_quantity FROM User join Goods ON User.user_id = Goods.user_id WHERE User.user_id=%s;"
-        params = [current_user]
+        query = "SELECT goods_quantity FROM Goods WHERE Goods.goods_id=%s;"
+        params = [goods_id]
         cursor.execute(query, params)
     except:
         return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
     data = cursor.fetchall()
     cursor.close()
-    # finding specific goods
-    for x in data:
-        if x[0] == goods_id:
-            goods = x
-    # calculate differences between updated data and warehouse data, to make demand transaction for forecasting
-    if goods[1] > goods_qty_update:
-        demand = goods[1] - goods_qty_update
-        timeseries = datetime.datetime.now()
-        try:
-            cursor = mysql.connection.cursor()
-            query = "INSERT INTO WarehouseDemand(goods_id, qty, timeseries) VALUES(%s, %s, %s);"
-            params = (int(goods_id), float(demand), timeseries)
-            cursor.execute(query, params)
-            mysql.connection.commit()
-        except:
-            return make_response(jsonify({'status': 0, "message": "Could not create history transaction, Querying error!"}), 500)
-        cursor.close()
+    quantity = data[0][0]
+    quantity += goods_qty_update
     try:
         cursor = mysql.connection.cursor()
         query = "UPDATE Goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
-        params = (goods_name_update, float(goods_qty_update),
+        params = (goods_name_update, float(quantity), goods_unit_update, int(goods_price_update), int(goods_id))
+        cursor.execute(query, params)
+        mysql.connection.commit()
+    except:
+        return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
+    cursor.close()
+    response = {
+        "data": {
+            "goods_id": goods_id,
+            "goods_name": goods_name_update,
+            "goods_quantity": quantity,
+            "goods_unit": goods_unit_update,
+            "goods_price": goods_price_update
+        },
+        "status": 1,
+        "message": "successfully increase goods stock"
+    }
+    return make_response(jsonify(response), 200)
+
+
+@app.route('/warehouse/update/goods/decrease', methods=['PUT'])
+@public_id_required
+def good_decrease(current_user):
+    data = request.json
+    goods_id = data['goods_id']
+    goods_name_update = data['goods_name']
+    goods_qty_update = data['goods_quantity']
+    goods_unit_update = data['goods_unit']
+    goods_price_update = data['goods_price']
+    current_user = current_user[0][0]
+    try:
+        cursor = mysql.connection.cursor()
+        query = "SELECT goods_quantity FROM Goods WHERE Goods.goods_id=%s;"
+        params = [goods_id]
+        cursor.execute(query, params)
+    except:
+        return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
+    data = cursor.fetchall()
+    cursor.close()
+    quantity = data[0][0]
+    quantity -= goods_qty_update
+    try:
+        cursor = mysql.connection.cursor()
+        query = "UPDATE Goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
+        params = (goods_name_update, float(quantity),
                   goods_unit_update, int(goods_price_update), int(goods_id))
         cursor.execute(query, params)
         mysql.connection.commit()
     except:
-        return make_response(jsonify({'status': 0, "message": "Could not update data warehouse, Querying error!"}), 500)
+        return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
+    cursor.close()
+    timeseries = datetime.datetime.now()
+    try:
+        cursor = mysql.connection.cursor()
+        query = "INSERT INTO WarehouseDemand(goods_id, qty, timeseries) VALUES(%s, %s, %s);"
+        params = (int(goods_id), float(goods_qty_update), timeseries)
+        cursor.execute(query, params)
+        mysql.connection.commit()
+    except:
+        return make_response(jsonify({'status': 0, "message": "Could not create history transaction, Querying error!"}), 500)
     cursor.close()
     response = {
-        'updated_data': {
-            'goods_id': goods_id,
-            'goods_name': goods_name_update,
-            'goods_quantity': goods_qty_update,
-            'goods_unit': goods_unit_update,
-            'goods_price': goods_price_update
+        "data": {
+            "goods_id": goods_id,
+            "goods_name": goods_name_update,
+            "goods_quantity": quantity,
+            "goods_unit": goods_unit_update,
+            "goods_price": goods_price_update
         },
-        'status': 1,
-        'message': 'Update data success'
+        "status": 1,
+        "message": "successfully decrease goods stock"
     }
     return make_response(jsonify(response), 200)
 
@@ -255,13 +311,16 @@ def predict_demand(current_user, goods_id):
         tmp_data.append(x)
     df = pd.DataFrame.from_records(tmp_data, columns=['qty'])
     train = df['qty'].values.astype(np.float32).reshape(-1, 1)
+
     # ==== Preprocessing ====
     #Nomalize Data
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaler = scaler.fit(train)
     train = scaler.transform(train)
+
     # Make a DataFrame
     train = pd.DataFrame(train, columns=['qty'])
+
     # Creating Windowed Dataset
     def windowed_data(dataframe, size, start):
         container = []
@@ -279,6 +338,7 @@ def predict_demand(current_user, goods_id):
         return container
     x_train = windowed_data(train.values.tolist(), 13, 0)
     y_train = windowed_data(train.values.tolist(), 6, 14)
+
     # Convert into 2D
     def convert_2d(data):
         dim1 = []
@@ -291,13 +351,33 @@ def predict_demand(current_user, goods_id):
         return dim1
     x_train = convert_2d(x_train)
     y_train = convert_2d(y_train)
+
     # Selecting last value for predicting future value
     to_predict = np.array(x_train[-1], dtype=np.float32).reshape(1, -1)
     # Makes shape of x and y tobe equal
     x_train = x_train[:len(y_train)]
-    # === Modeling ===
-    model = RandomForestRegressor(
-        n_estimators=200, min_samples_leaf=2, min_samples_split=10, bootstrap=False, criterion='mae')
+
+    # ====== Modeling ======
+    # Tuning Hyperparameters
+    # hyperparameters = {
+    #     'n_estimators': [200, 400, 600],
+    #     'min_samples_leaf': [1,2,3,4,5],
+    #     'min_samples_split': [2,4,6,8]
+    # }
+
+    # model = make_pipeline(
+    #     GridSearchCV(
+    #         RandomForestRegressor(),
+    #         param_grid=hyperparameters,
+    #         cv=3,
+    #         refit=True
+    #     )
+    # )
+    # model.fit(x_train, y_train)
+    # result = model.predict(to_predict)
+    # print(result)
+
+    model = RandomForestRegressor(n_estimators=200, min_samples_leaf=2, min_samples_split=10, bootstrap=False, criterion='mae')
     model.fit(x_train, y_train)
     prediction = model.predict(to_predict)
     prediction = scaler.inverse_transform(prediction)
