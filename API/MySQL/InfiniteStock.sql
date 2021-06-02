@@ -39,7 +39,7 @@ CREATE TABLE `demandprediction` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `demandprediction_ibfk_1` FOREIGN KEY (`goods_id`) REFERENCES `goods` (`goods_id`),
   CONSTRAINT `demandprediction_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `goods` (
   UNIQUE KEY `goods_id` (`goods_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `goods_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -101,7 +101,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `public_id` (`public_id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `password` (`password`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,7 +130,7 @@ CREATE TABLE `warehousedemand` (
   UNIQUE KEY `demand_id` (`demand_id`),
   KEY `goods_id` (`goods_id`),
   CONSTRAINT `warehousedemand_ibfk_1` FOREIGN KEY (`goods_id`) REFERENCES `goods` (`goods_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
