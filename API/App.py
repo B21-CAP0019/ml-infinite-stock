@@ -63,7 +63,7 @@ def sign_up():
     public_id = str(uuid.uuid4())
     try:
         cursor = mysql.connection.cursor()
-        query = 'INSERT INTO User(public_id,email,password) VALUES (%s, %s, %s);'
+        query = 'INSERT INTO user(public_id,email,password) VALUES (%s, %s, %s);'
         params = (public_id, auth.username, password)
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -84,7 +84,7 @@ def sign_in():
             return make_response(jsonify({'status': 0, 'message': 'Password is required!'}), 400)
     try:
         cursor = mysql.connection.cursor()
-        query = 'SELECT public_id, email, password, full_name, shop_name FROM User WHERE email = %s LIMIT 1;'
+        query = 'SELECT public_id, email, password, full_name, shop_name FROM user WHERE email = %s LIMIT 1;'
         params = [auth.username]
         user_data = cursor.execute(query, params)
     except:
@@ -110,7 +110,7 @@ def public_id_required(f):
         try:
             cursor = mysql.connection.cursor()
             cursor.execute(
-                'SELECT user_id FROM User WHERE public_id = %s LIMIT 1;', [public_id])
+                'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
         except:
             return make_response(jsonify({'message': 'Public Id is Invalid!'}), 401)
         current_user = cursor.fetchall()
@@ -130,7 +130,7 @@ def create_goods(current_user):
     user_id = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = 'INSERT INTO Goods(goods_name, goods_quantity, goods_unit, goods_price, user_id) VALUES(%s, %s, %s, %s, %s);'
+        query = 'INSERT INTO goods(goods_name, goods_quantity, goods_unit, goods_price, user_id) VALUES(%s, %s, %s, %s, %s);'
         params = (goods_name, float(goods_quantity), goods_unit, int(goods_price), int(user_id))
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -147,7 +147,7 @@ def get_all_goods(current_user):
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = 'SELECT goods_id, goods_name, goods_quantity, goods_unit, goods_price FROM User JOIN Goods ON user.user_id = Goods.user_id WHERE user.user_id = %s;'
+        query = 'SELECT goods_id, goods_name, goods_quantity, goods_unit, goods_price FROM user JOIN goods ON user.user_id = goods.user_id WHERE user.user_id = %s;'
         params = [current_user]
         cursor.execute(query, params)
     except:
@@ -186,7 +186,7 @@ def goods_increase(current_user):
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT goods_quantity FROM Goods WHERE Goods.goods_id=%s;"
+        query = "SELECT goods_quantity FROM goods WHERE goods.goods_id=%s;"
         params = [goods_id]
         cursor.execute(query, params)
     except:
@@ -197,7 +197,7 @@ def goods_increase(current_user):
     quantity += goods_qty_update
     try:
         cursor = mysql.connection.cursor()
-        query = "UPDATE Goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
+        query = "UPDATE goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
         params = (goods_name_update, float(quantity), goods_unit_update, int(goods_price_update), int(goods_id))
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -230,7 +230,7 @@ def good_decrease(current_user):
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT goods_quantity FROM Goods WHERE Goods.goods_id=%s;"
+        query = "SELECT goods_quantity FROM goods WHERE goods.goods_id=%s;"
         params = [goods_id]
         cursor.execute(query, params)
     except:
@@ -241,9 +241,8 @@ def good_decrease(current_user):
     quantity -= goods_qty_update
     try:
         cursor = mysql.connection.cursor()
-        query = "UPDATE Goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
-        params = (goods_name_update, float(quantity),
-                  goods_unit_update, int(goods_price_update), int(goods_id))
+        query = "UPDATE goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
+        params = (goods_name_update, float(quantity),goods_unit_update, int(goods_price_update), int(goods_id))
         cursor.execute(query, params)
         mysql.connection.commit()
     except:
@@ -252,7 +251,7 @@ def good_decrease(current_user):
     timeseries = datetime.datetime.now()
     try:
         cursor = mysql.connection.cursor()
-        query = "INSERT INTO WarehouseDemand(goods_id, qty, timeseries) VALUES(%s, %s, %s);"
+        query = "INSERT INTO warehousedemand(goods_id, qty, timeseries) VALUES(%s, %s, %s);"
         params = (int(goods_id), float(goods_qty_update), timeseries)
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -278,7 +277,7 @@ def good_decrease(current_user):
 def delete_goods(current_user, goods_id):
     try:
         cursor = mysql.connection.cursor()
-        query = 'DELETE FROM Goods WHERE goods_id = %s'
+        query = 'DELETE FROM goods WHERE goods_id = %s'
         params = [goods_id]
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -295,8 +294,8 @@ def predict_demand(current_user, goods_id):
     user_id = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        # data = cursor.execute('SELECT qty FROM Goods JOIN User ON Goods.user_id = User.user_id JOIN WarehouseDemand ON Goods.goods_id = WarehouseDemand.goods_id WHERE Goods.user_id=%s AND Goods.goods_id=%s;',(int(user_id), int(goods_id)))
-        query = 'SELECT qty  FROM WarehouseDemand WHERE goods_id=%s;'
+        # data = cursor.execute('SELECT qty FROM Goods JOIN user ON Goods.user_id = User.user_id JOIN WarehouseDemand ON Goods.goods_id = WarehouseDemand.goods_id WHERE Goods.user_id=%s AND Goods.goods_id=%s;',(int(user_id), int(goods_id)))
+        query = 'SELECT qty  FROM warehousedemand WHERE goods_id=%s;'
         params = [int(goods_id)]
         data = cursor.execute(query, params)
     except:
@@ -384,7 +383,7 @@ def predict_demand(current_user, goods_id):
     timenow = datetime.datetime.now()
     try:
         cursor = mysql.connection.cursor()
-        query = 'INSERT INTO DemandPrediction(goods_id, user_id, day_1, day_2, day_3, day_4, day_5, day_6, day_7, start_date_prediction) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'
+        query = 'INSERT INTO demandprediction(goods_id, user_id, day_1, day_2, day_3, day_4, day_5, day_6, day_7, start_date_prediction) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'
         params = (int(goods_id), int(user_id), float(prediction[0][0]), float(prediction[0][1]), float(prediction[0][2]), float(
             prediction[0][3]), float(prediction[0][4]), float(prediction[0][5]), float(prediction[0][6]), timenow)
         cursor.execute(query, params)
@@ -401,7 +400,7 @@ def get_demand_prediction(current_user):
     user_id = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = 'SELECT goods_name, day_1, day_2, day_3, day_4, day_5, day_6, day_7, start_date_prediction FROM DemandPrediction JOIN Goods ON DemandPrediction.goods_id = Goods.goods_id WHERE DemandPrediction.user_id = %s;'
+        query = 'SELECT goods_name, day_1, day_2, day_3, day_4, day_5, day_6, day_7, start_date_prediction FROM demandprediction JOIN goods ON demandprediction.goods_id = goods.goods_id WHERE demandprediction.user_id = %s;'
         params = [user_id]
         data = cursor.execute(query, params)
     except:
