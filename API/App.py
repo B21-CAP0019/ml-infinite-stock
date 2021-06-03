@@ -58,7 +58,7 @@ def sign_up():
     if not auth or not auth.username or not auth.password:
         return make_response('Could not verify username or password', 401)
     if not (len(auth.password) > 8 and len(auth.password) < 15):
-        return make_response(jsonify({'status': 0, 'message': 'password should contain characters in range 8 - 15'}), 400)
+        return make_response(jsonify({'status':0, 'message':'password should contain characters in range 8 - 15'}), 400)
     password = generate_password_hash(auth.password, method='sha256')
     public_id = str(uuid.uuid4())
     try:
@@ -67,11 +67,11 @@ def sign_up():
         params = (public_id, auth.username, password)
         cursor.execute(query, params)
         mysql.connection.commit()
-    except:
-        return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!"}), 500)
+    except Exception as err:
+        return make_response(jsonify({'status':0, "message": "Could not create a new user, Querying error!", "errorDB":err}), 500)
     finally:
         cursor.close()
-    return make_response(jsonify({'data': {'public_id': public_id}, 'status': 1, 'message': 'Sign up success'}), 201)
+    return make_response(jsonify({'data':{'public_id':public_id}, 'status':1, 'message':'Sign up success'}), 201)
 
 
 @app.route('/auth/signin', methods=['GET'])
