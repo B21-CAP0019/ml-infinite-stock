@@ -342,5 +342,30 @@ def predict_demand(current_user, goods_id):
     return make_response(jsonify(response), 200)
 
 
+@app.route('/user/search/publicid', methods=['GET'])
+def search_publicid():
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        query = "SELECT email  FROM user WHERE public_id = %s;"
+        params = [public_id]
+        data = cursor.execute(query, params)
+    except Exception as err:
+        return make_response(jsonify({'status': 0, "message": "Could find a specific user, Querying error!", "errorDB": err}), 500)
+    found = 0
+    message = "User not found!"
+    if data == 1:
+        found = 1
+        message = "User found"
+    response = {
+        "data": {
+            "found": found,
+            "publicid": public_id
+        },
+        "message": message
+    }
+    return make_response(jsonify(response), 200)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
