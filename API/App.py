@@ -34,7 +34,7 @@ def success():
 
 @app.route('/auth/signup', methods=['POST'])
 def sign_up():
-    data = request.json
+    data = request.form
     email = data['email']
     password = data['password']
     password = generate_password_hash(password, method='sha256')
@@ -96,7 +96,7 @@ def public_id_required(f):
 @app.route('/warehouse/create/goods', methods=['POST'])
 @public_id_required
 def create_goods(current_user):
-    data = request.json
+    data = request.form
     goods_name = data['goods_name']
     goods_quantity = data['goods_quantity']
     goods_unit = data['goods_unit']
@@ -152,7 +152,7 @@ def get_all_goods(current_user):
 @app.route('/warehouse/update/goods', methods=['PUT'])
 @public_id_required
 def goods_out(current_user):
-    data = request.json
+    data = request.form
     goods_id = data['goods_id']
     goods_name_update = data['goods_name']
     goods_qty_update = data['goods_quantity']
@@ -342,26 +342,35 @@ def predict_demand(current_user, goods_id):
     return make_response(jsonify(response), 200)
 
 
-@app.route('/user/search/publicid', methods=['GET'])
+@app.route('/user/search', methods=['GET'])
 def search_publicid():
     public_id = request.args.get('public_id')
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT email  FROM user WHERE public_id = %s;"
+        query = "SELECT email, full_name, shop_name  FROM user WHERE public_id = %s;"
         params = [public_id]
         data = cursor.execute(query, params)
     except Exception as err:
         return make_response(jsonify({'status': 0, "message": "Could find a specific user, Querying error!", "errorDB": err}), 500)
     found = 0
     message = "User not found!"
+    detail_data = {
+        "found": found,
+        "public_id": None,
+    }
     if data == 1:
+        data = cursor.fetchall()
+        data = data[0]
         found = 1
         message = "User found"
-    response = {
-        "data": {
+        detail_data = {
             "found": found,
-            "publicid": public_id
-        },
+            "public_id": public_id,
+            "full_name": data[1],
+            "shop_name": data[2]
+        }
+    response = {
+        "data": detail_data,
         "message": message
     }
     return make_response(jsonify(response), 200)
