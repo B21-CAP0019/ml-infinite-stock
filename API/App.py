@@ -59,7 +59,7 @@ def sign_up():
     public_id = str(uuid.uuid4())
     try:
         cursor = mysql.connection.cursor()
-        query = 'INSERT INTO User(public_id,email,password) VALUES (%s, %s, %s);'
+        query = 'INSERT INTO user(public_id,email,password) VALUES (%s, %s, %s);'
         params = (public_id, email, password)
         cursor.execute(query, params)
         mysql.connection.commit()
@@ -78,7 +78,7 @@ def sign_in():
     password = data['password']
     try:
         cursor = mysql.connection.cursor()
-        query = 'SELECT public_id, email, password, full_name, shop_name FROM User WHERE email = %s LIMIT 1;'
+        query = 'SELECT public_id, email, password, full_name, shop_name FROM user WHERE email = %s LIMIT 1;'
         params = [email]
         user_data = cursor.execute(query, params)
     except Exception as err:
