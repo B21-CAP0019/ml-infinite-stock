@@ -357,6 +357,8 @@ def search_publicid():
     detail_data = {
         "found": found,
         "public_id": None,
+        "full_name": None,
+        "shop_name": None
     }
     if data == 1:
         data = cursor.fetchall()
