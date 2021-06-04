@@ -73,9 +73,8 @@ def sign_up():
 @app.route('/auth/signin', methods=['GET'])
 @expects_json(auth)
 def sign_in():
-    data = request.json
-    email = data['email']
-    password = data['password']
+    email = request.args.get("email")
+    password = request.args.get("password")
     try:
         cursor = mysql.connection.cursor()
         query = 'SELECT public_id, email, password, full_name, shop_name FROM user WHERE email = %s LIMIT 1;'
