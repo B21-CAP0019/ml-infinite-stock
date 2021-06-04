@@ -27,30 +27,12 @@ app.config['SECRET_KEY'] = 'bangkitCapstone'
 
 mysql = MySQL(app)
 
-
-auth = {
-    "type": "object",
-    "properties": {
-        "email": {
-            "type": "string",
-            "minLength": 10
-        },
-        "password": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 15
-        }
-    },
-    "required": ["email", "password"]
-}
-
 @app.route('/', methods=['GET'])
 def success():
     return make_response(jsonify({"message": "Success"}), 200)
 
 
 @app.route('/auth/signup', methods=['POST'])
-@expects_json(auth)
 def sign_up():
     data = request.json
     email = data['email']
@@ -71,7 +53,6 @@ def sign_up():
 
 
 @app.route('/auth/signin', methods=['GET'])
-@expects_json(auth)
 def sign_in():
     email = request.args.get("email")
     password = request.args.get("password")
