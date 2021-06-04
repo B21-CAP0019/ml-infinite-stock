@@ -28,53 +28,66 @@ app.config['SECRET_KEY'] = 'bangkitCapstone'
 mysql = MySQL(app)
 
 
+auth = {
+    "type": "object",
+    "properties": {
+        "email": {
+            "type": "string",
+            "minLength": 10
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 15
+        }
+    },
+    "required": ["email", "password"]
+}
+
 @app.route('/', methods=['GET'])
 def success():
     return make_response(jsonify({"message": "Success"}), 200)
 
 
 @app.route('/auth/signup', methods=['POST'])
+@expects_json(auth)
 def sign_up():
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password:
-        return make_response('Could not verify username or password', 401)
-    if not (len(auth.password) > 8 and len(auth.password) < 15):
-        return make_response(jsonify({'status': 0, 'message': 'password should contain characters in range 8 - 15'}), 400)
-    password = generate_password_hash(auth.password, method='sha256')
+    data = request.json
+    email = data['email']
+    password = data['password']
+    password = generate_password_hash(password, method='sha256')
     public_id = str(uuid.uuid4())
     try:
         cursor = mysql.connection.cursor()
         query = 'INSERT INTO User(public_id,email,password) VALUES (%s, %s, %s);'
-        params = (public_id, auth.username, password)
+        params = (public_id, email, password)
         cursor.execute(query, params)
         mysql.connection.commit()
     except Exception as err:
-        return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!", "errorDB": err}), 500)
+        return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!", "error": err}), 500)
     finally:
         cursor.close()
     return make_response(jsonify({'data': {'public_id': public_id}, 'status': 1, 'message': 'Sign up success'}), 201)
 
 
 @app.route('/auth/signin', methods=['GET'])
+@expects_json(auth)
 def sign_in():
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password:
-        if not auth.username:
-            return make_response(jsonify({'status': 0, 'message': 'Email is required!'}), 400)
-        else:
-            return make_response(jsonify({'status': 0, 'message': 'Password is required!'}), 400)
+    data = request.json
+    email = data['email']
+    password = data['password']
     try:
         cursor = mysql.connection.cursor()
         query = 'SELECT public_id, email, password, full_name, shop_name FROM User WHERE email = %s LIMIT 1;'
-        params = [auth.username]
+        params = [email]
         user_data = cursor.execute(query, params)
-    except ():
-        return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
+    except Exception as err:
+        return make_response(jsonify({'status': 0, 'message': "Querying error!", 'error': err}), 500)
     if user_data > 0:
         detail_user = cursor.fetchall()
     else:
         return make_response(jsonify({'status': 0, 'message': 'Sign in denied, could not find a specific user!'}), 401)
-    if check_password_hash(detail_user[0][2], auth.password):
+    if check_password_hash(detail_user[0][2], password):
         return make_response(jsonify({'data': {'public_id': detail_user[0][0], 'full_name': detail_user[0][3], 'shop_name': detail_user[0][4]}, 'status': 1, 'message': 'Sign in success'}), 200)
     cursor.close()
     return make_response(jsonify({'status': 0, 'message': 'Sign in denied, password and email did not match!'}), 401)
