@@ -92,7 +92,7 @@ def public_id_required(f):
     return decorated
 
 
-@app.route('/warehouse/create/goods', methods=['POST'])
+@app.route('/warehouse/goods/create', methods=['POST'])
 @public_id_required
 def create_goods(current_user):
     data = request.form
@@ -114,7 +114,78 @@ def create_goods(current_user):
     return make_response(jsonify({'status': 1, 'message': 'Success storing a new Goods'}), 201)
 
 
-@app.route('/warehouse/get/goods/all', methods=['GET'])
+@app.route('/warehouse/goods/search/name', methods=['GET'])
+@public_id_required
+def search_goods(current_user):
+    keyword = request.args.get('keyword')
+    current_user = current_user[0][0]
+    try:
+        cursor = mysql.connection.cursor()
+        query = "SELECT goods_name, goods_quantity, goods_unit, goods_price FROM goods JOIN user ON goods.user_id=user.user_id WHERE user.user_id=%s AND goods.goods_name LIKE %s;"
+        params = (current_user, '%%%s%%' % keyword)
+        data = cursor.execute(query, params)
+    except Exception as err:
+        return make_response(jsonify({'status': 0, 'message': "Could not find a specific goods, Querying error!", 'error': err}), 500)
+    if data == 0:
+        response = {
+            'data': None,
+            'status': 0,
+            'message': 'There is no data requested'
+        }
+    data = cursor.fetchall()
+    cursor.close()
+    list_data = []
+    for x in data:
+        goods = {}
+        goods['goods_name'] = x[0]
+        goods['goods_quantity'] = x[1]
+        goods['goods_unit'] = x[2]
+        goods['goods_price'] = x[3]
+        list_data.append(goods)
+    response = {
+        'data': list_data,
+        'status': 1,
+        'message': 'Success searching particular goods by name'
+    }
+    return make_response(jsonify(response), 200)
+
+
+@app.route('/warehouse/goods/get', methods=['GET'])
+@public_id_required
+def get_particular_goods(current_user):
+    current_user = current_user[0][0]
+    goods_id = request.args.get('goods_id')
+    try:
+        cursor = mysql.connection.cursor()
+        query = 'SELECT goods_name, goods_quantity, goods_unit, goods_price FROM goods JOIN user ON goods.user_id=user.user_id WHERE goods.goods_id=%s AND user.user_id=%s LIMIT 1;'
+        params = (goods_id,current_user)
+        data = cursor.execute(query, params)
+    except Exception as err:
+        return make_response(jsonify({'status': 0, 'message': "Querying error!", 'error': err}), 500)
+    if data == 0:
+        response = {
+            'data':None,
+            'status':0,
+            'message':'Data did not exist in the database!'
+        }
+        return make_response(jsonify(response),200)
+    data = cursor.fetchall()
+    cursor.close()
+    data = data[0]
+    response = {
+        'data':{
+            'goods_name':data[0],
+            'goods_quantity':data[1],
+            'goods_unit':data[2],
+            'goods_price':data[3]
+        },
+        'status':1,
+        'message':'Success getting specific data'
+    }
+    return make_response(jsonify(response),200)
+
+
+@app.route('/warehouse/goods/get/all', methods=['GET'])
 @public_id_required
 def get_all_goods(current_user):
     current_user = current_user[0][0]
@@ -147,9 +218,9 @@ def get_all_goods(current_user):
     return make_response(jsonify(response), 200)
 
 
-@app.route('/warehouse/update/goods', methods=['PUT'])
+@app.route('/warehouse/goods/update', methods=['PUT'])
 @public_id_required
-def goods_out(current_user):
+def goods_update(current_user):
     data = request.form
     goods_id = data['goods_id']
     goods_name_update = data['goods_name']
@@ -208,7 +279,7 @@ def goods_out(current_user):
     return make_response(jsonify(response), 200)
 
 
-@app.route('/warehouse/delete/goods/<goods_id>', methods=['DELETE'])
+@app.route('/warehouse/goods/delete/<goods_id>', methods=['DELETE'])
 @public_id_required
 def delete_goods(current_user, goods_id):
     try:
@@ -223,7 +294,7 @@ def delete_goods(current_user, goods_id):
     return make_response(jsonify({'status': 1, 'message': 'Delete data success'}), 200)
 
 
-@app.route('/warehouse/demand/predict/<goods_id>', methods=['GET'])
+@app.route('/warehouse/goods/demand/predict/<goods_id>', methods=['GET'])
 @public_id_required
 def predict_demand(current_user, goods_id):
     # retrieves last 150 data from 'WarehouseDemand' table in a database
