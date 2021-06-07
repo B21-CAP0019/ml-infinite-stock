@@ -336,7 +336,7 @@ def report_goodsin():
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT goods.goods_name, historygoodsin.qty, historygoodsin.timeseries from historygoodsin JOIN goods ON historygoodsin.goods_id=goods.goods_id WHERE goods.user_id=%s ORDER BY historygoodsin.history_id DESC LIMIT 50;"
+        query = "SELECT goods.goods_name, historygoodsin.qty, historygoodsin.timeseries, goods.goods_unit from historygoodsin JOIN goods ON historygoodsin.goods_id=goods.goods_id WHERE goods.user_id=%s ORDER BY historygoodsin.history_id DESC LIMIT 50;"
         params = [current_user]
         data = cursor.execute(query, params)
     except mysql.connection.Error:
@@ -349,8 +349,9 @@ def report_goodsin():
         detail = {}
         detail['goods_name'] = x[0]
         detail['goods_quantity'] = x[1]
+        detail['goods_unit'] = x[3]
         datetime = x[2].timetuple()
-        detail['datetime'] = f'{datetime[2]}/{datetime[1]}/{datetime[0]}, {datetime[3]}:{datetime[4]}:{datetime[5]}'
+        detail['datetime'] = f'{datetime[0]}/{datetime[1]}/{datetime[2]} {datetime[3]}:{datetime[4]}:{datetime[5]}'
         detail_data.append(detail)
     response = {
         'data': detail_data,
