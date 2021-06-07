@@ -447,7 +447,7 @@ def predict_demand(goods_id):
     except:
         return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
     if data < 120:
-        return make_response(jsonify({'status': 0, 'message': 'Not enough data to make predictions'}), 500)
+        return make_response(jsonify({'data':[],'status': 0, 'message': 'Not enough data to make predictions'}), 200)
     data = cursor.fetchall()
     if len(data) > 120:
         data = data[-120:]
