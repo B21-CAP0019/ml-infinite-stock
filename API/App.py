@@ -49,7 +49,7 @@ def sign_up():
         return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!", "error": err}), 500)
     finally:
         cursor.close()
-    return make_response(jsonify({'data': {'public_id': public_id}, 'status': 1, 'message': 'Sign up success'}), 201)
+    return make_response(jsonify({'status': 1, 'message': 'Sign up success'}), 201)
 
 
 @app.route('/auth/signin', methods=['GET'])
