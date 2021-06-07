@@ -511,40 +511,16 @@ def predict_demand(goods_id):
     for x in range(0, 7):
         dmy = ""
         date += 1
-        dmy += f"{date}/{month}/{year}"
+        dmy += f"{year}-{month}-{date}"
         date_list.append(dmy)
-    print(date_list)
+    detail_data = []
+    for x in range(0, 7):
+        day = {}
+        day['date'] = date_list[x]
+        day['prediction'] = int(round(prediction[0][x]))
+        detail_data.append(day)
     response = {
-        "data": {
-            "day1": {
-                "date": date_list[0],
-                "prediction": int(round(prediction[0][0]))
-            },
-            "day2": {
-                "date": date_list[1],
-                "prediction": int(round(prediction[0][1]))
-            },
-            "day3": {
-                "date": date_list[2],
-                "prediction": int(round(prediction[0][2]))
-            },
-            "day4": {
-                "date": date_list[3],
-                "prediction": int(round(prediction[0][3]))
-            },
-            "day5": {
-                "date": date_list[4],
-                "prediction": int(round(prediction[0][4]))
-            },
-            "day6": {
-                "date": date_list[5],
-                "prediction": int(round(prediction[0][5]))
-            },
-            "day7": {
-                "date": date_list[6],
-                "prediction": int(round(prediction[0][6]))
-            }
-        },
+        "data": detail_data,
         "message": "Success Predicting Data",
         "status": 1
     }
