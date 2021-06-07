@@ -283,6 +283,18 @@ def goods_update():
         except:
             return make_response(jsonify({'status': 0, "message": "Could not create history transaction, Querying error!"}), 500)
         cursor.close()
+    else:
+        goodsin = goods_qty_update - goods[1]
+        timeseries = datetime.datetime.now()
+        try:
+            cursor = mysql.connection.cursor()
+            query = "INSERT INTO historygoodsin(goods_id, qty, timeseries) VALUES(%s, %s, %s);"
+            params = (int(goods_id), float(goodsin), timeseries)
+            cursor.execute(query, params)
+            mysql.connection.commit()
+        except:
+            return make_response(jsonify({'status': 0, "message": "Could not create history transaction, Querying error!"}), 500)
+        cursor.close()
     try:
         cursor = mysql.connection.cursor()
         query = "UPDATE goods SET goods_name = %s, goods_quantity = %s, goods_unit = %s, goods_price = %s WHERE goods_id = %s;"
@@ -306,6 +318,46 @@ def goods_update():
     }
     return make_response(jsonify(response), 200)
 
+
+@app.route('/warehouse/goods/report/goodsin', methods=['GET'])
+def report_goodsin():
+    #=== Authenticating Public ID =====
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
+    current_user = current_user[0][0]
+    try:
+        cursor = mysql.connection.cursor()
+        query = "SELECT goods.goods_name, historygoodsin.qty, historygoodsin.timeseries from historygoodsin JOIN goods ON historygoodsin.goods_id=goods.goods_id WHERE goods.user_id=%s ORDER BY historygoodsin.history_id DESC LIMIT 50;"
+        params = [current_user]
+        data = cursor.execute(query, params)
+    except mysql.connection.Error:
+        return make_response(jsonify({'status': 0, 'message': 'Cannot getting data from database!'}), 500)
+    if data == 0:
+        return make_response(jsonify({'status': 0, 'message': 'There is no data in the database'}), 200)
+    data = cursor.fetchall()
+    detail_data = []
+    for x in data:
+        detail = {}
+        detail['goods_name'] = x[0]
+        detail['goods_quantity'] = x[1]
+        datetime = x[2].timetuple()
+        detail['datetime'] = f'{datetime[2]}/{datetime[1]}/{datetime[0]}, {datetime[3]}:{datetime[4]}:{datetime[5]}'
+        detail_data.append(detail)
+    response = {
+        'data': detail_data,
+        'status': 1,
+        'message': 'Success generate report'
+    }
+    return make_response(jsonify(response), 200)
 
 @app.route('/warehouse/goods/delete/<goods_id>', methods=['DELETE'])
 def delete_goods(goods_id):
