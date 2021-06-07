@@ -350,8 +350,8 @@ def report_goodsin():
         detail['goods_name'] = x[0]
         detail['goods_quantity'] = x[1]
         detail['goods_unit'] = x[3]
-        datetime = x[2].timetuple()
-        detail['datetime'] = f'{datetime[0]}/{datetime[1]}/{datetime[2]} {datetime[3]}:{datetime[4]}:{datetime[5]}'
+        datetime = x[2]
+        detail['datetime'] = datetime.strftime('%Y-%m-%d %H:%M:%S')
         detail_data.append(detail)
     response = {
         'data': detail_data,
