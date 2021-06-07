@@ -502,6 +502,15 @@ def predict_demand(goods_id):
     model.fit(x_train, y_train)
     prediction = model.predict(to_predict)
     prediction = scaler.inverse_transform(prediction)
+    try:
+        cursor = mysql.connection.cursor()
+        query = 'SELECT goods_unit FROM goods WHERE goods_id=%s LIMIT 1;'
+        params = [int(goods_id)]
+        data = cursor.execute(query, params)
+    except mysql.connection.Error:
+        return make_response(jsonify({'status': 0, 'message': "Cannot querying goods unit!"}), 500)
+    data = cursor.fetchall()
+    unit = data[0][0]
     timenow = datetime.datetime.now()
     timenow = timenow.timetuple()
     year = timenow[0]
@@ -517,7 +526,7 @@ def predict_demand(goods_id):
     for x in range(0, 7):
         day = {}
         day['date'] = date_list[x]
-        day['prediction'] = int(round(prediction[0][x]))
+        day['prediction'] = f'{round(prediction[0][x])} {unit}'
         detail_data.append(day)
     response = {
         "data": detail_data,
