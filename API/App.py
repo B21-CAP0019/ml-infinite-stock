@@ -73,29 +73,19 @@ def sign_in():
     return make_response(jsonify({'status': 0, 'message': 'Sign in denied, password and email did not match!'}), 401)
 
 
-def public_id_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        public_id = None
-        if 'x-access-publicid' in request.headers:
-            public_id = request.headers['x-access-publicid']
-        if not public_id:
-            return make_response(jsonify({'message': 'Public Id is Missing!'}), 401)
-        try:
+@app.route('/warehouse/goods/create', methods=['POST'])
+def create_goods():
+    data = request.form
+    #=== Authenticating Public ID =====
+    public_id = data['public_id']
+    try:
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
-        except:
-            return make_response(jsonify({'message': 'Public Id is Invalid!'}), 401)
-        current_user = cursor.fetchall()
-        cursor.close()
-        return f(current_user, *args, **kwargs)
-    return decorated
-
-
-@app.route('/warehouse/goods/create', methods=['POST'])
-@public_id_required
-def create_goods(current_user):
-    data = request.form
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error':err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # ==== API Functionality ====
     goods_name = data['goods_name']
     goods_quantity = data['goods_quantity']
     goods_unit = data['goods_unit']
@@ -115,8 +105,17 @@ def create_goods(current_user):
 
 
 @app.route('/warehouse/goods/search/name', methods=['GET'])
-@public_id_required
-def search_goods(current_user):
+def search_goods():
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     keyword = request.args.get('keyword')
     current_user = current_user[0][0]
     try:
@@ -151,8 +150,18 @@ def search_goods(current_user):
 
 
 @app.route('/warehouse/goods/get', methods=['GET'])
-@public_id_required
-def get_particular_goods(current_user):
+def get_particular_goods():
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     current_user = current_user[0][0]
     goods_id = request.args.get('goods_id')
     try:
@@ -186,8 +195,18 @@ def get_particular_goods(current_user):
 
 
 @app.route('/warehouse/goods/get/all', methods=['GET'])
-@public_id_required
-def get_all_goods(current_user):
+def get_all_goods():
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
@@ -200,12 +219,14 @@ def get_all_goods(current_user):
     if len(data) == 0:
         return make_response(jsonify({'data': {'detail_data': 0, 'total_data': 0}, 'status': 0, 'message': "User have not insert any goods!"}), 200)
     total_data = len(data)
-    inner_data = len(data[0])
     detail_data = []
     for goods in data:
-        unit = []
-        for x in range(0, inner_data):
-            unit.append(goods[x])
+        unit = {}
+        unit['goods_id'] = goods[0]
+        unit['goods_name'] = goods[1]
+        unit['goods_quantity'] = goods[2]
+        unit['goods_unit'] = goods[3]
+        unit['goods_price'] = goods[4]
         detail_data.append(unit)
     response = {
         'data': {
@@ -219,9 +240,19 @@ def get_all_goods(current_user):
 
 
 @app.route('/warehouse/goods/update', methods=['PUT'])
-@public_id_required
-def goods_update(current_user):
+def goods_update():
+    #=== Authenticating Public ID =====
     data = request.form
+    public_id = data['public_id']
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     goods_id = data['goods_id']
     goods_name_update = data['goods_name']
     goods_qty_update = data['goods_quantity']
@@ -280,8 +311,17 @@ def goods_update(current_user):
 
 
 @app.route('/warehouse/goods/delete/<goods_id>', methods=['DELETE'])
-@public_id_required
-def delete_goods(current_user, goods_id):
+def delete_goods(goods_id):
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     try:
         cursor = mysql.connection.cursor()
         query = 'DELETE FROM goods WHERE goods_id = %s'
@@ -295,8 +335,18 @@ def delete_goods(current_user, goods_id):
 
 
 @app.route('/warehouse/goods/demand/predict/<goods_id>', methods=['GET'])
-@public_id_required
-def predict_demand(current_user, goods_id):
+def predict_demand(goods_id):
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
     # retrieves last 150 data from 'WarehouseDemand' table in a database
     try:
         cursor = mysql.connection.cursor()
