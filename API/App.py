@@ -360,6 +360,47 @@ def report_goodsin():
     }
     return make_response(jsonify(response), 200)
 
+
+@app.route('/warehouse/goods/report/goodsout', methods=['GET'])
+def report_goodsout():
+    #=== Authenticating Public ID =====
+    public_id = request.args.get('public_id')
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT user_id FROM user WHERE public_id = %s LIMIT 1;', [public_id])
+    except Exception as err:
+        return make_response(jsonify({'message': 'Public Id is Invalid!', 'error': err}), 401)
+    current_user = cursor.fetchall()
+    cursor.close()
+    # === API Functionality ===
+    current_user = current_user[0][0]
+    try:
+        cursor = mysql.connection.cursor()
+        query = "SELECT goods.goods_name, warehousedemand.qty, warehousedemand.timeseries, goods.goods_unit FROM warehousedemand JOIN goods ON warehousedemand.goods_id=goods.goods_id WHERE goods.user_id=%s ORDER BY warehousedemand.demand_id DESC LIMIT 50;"
+        params = [current_user]
+        data = cursor.execute(query, params)
+    except mysql.connection.Error:
+        return make_response(jsonify({'status': 0, 'message': 'Cannot getting data from database!'}), 500)
+    if data == 0:
+        return make_response(jsonify({'status': 0, 'message': 'There is no data in the database'}), 200)
+    data = cursor.fetchall()
+    cursor.close()
+    detail_data = []
+    for x in data:
+        detail = {}
+        detail['goods_name'] = x[0]
+        detail['goods_quantity'] = x[1]
+        detail['goods_unit'] = x[3]
+        datetime = x[2]
+        detail['datetime'] = datetime.strftime('%Y-%m-%d %H:%M:%S')
+        detail_data.append(detail)
+    response = {
+        'data': detail_data,
+        'status': 1,
+        'message': 'Success generate report'
+    }
+    return make_response(jsonify(response), 200)
+
 @app.route('/warehouse/goods/delete/<goods_id>', methods=['DELETE'])
 def delete_goods(goods_id):
     #=== Authenticating Public ID =====
