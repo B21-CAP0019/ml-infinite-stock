@@ -45,11 +45,11 @@ def sign_up():
         params = (public_id, email, password)
         cursor.execute(query, params)
         mysql.connection.commit()
-    except Exception as err:
-        return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!", "error": err}), 500)
+    except mysql.connection.Error:
+        return make_response(jsonify({'status': 0, "message": "Could not create a new user, Querying error!", "error": "Email already registered"}), 403)
     finally:
         cursor.close()
-    return make_response(jsonify({'status': 1, 'message': 'Sign up success'}), 201)
+    return make_response(jsonify({'data': {'public_id': public_id}, 'status': 1, 'message': 'Sign up success'}), 201)
 
 
 @app.route('/auth/signin', methods=['GET'])
