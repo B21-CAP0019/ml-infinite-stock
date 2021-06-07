@@ -262,17 +262,14 @@ def goods_update():
     current_user = current_user[0][0]
     try:
         cursor = mysql.connection.cursor()
-        query = "SELECT goods_id, goods_quantity FROM user join goods ON user.user_id = goods.user_id WHERE user.user_id=%s;"
-        params = [current_user]
+        query = "SELECT goods_id, goods_quantity FROM user join goods ON user.user_id = goods.user_id WHERE user.user_id=%s AND goods.goods_id=%s;"
+        params = [current_user, goods_id]
         cursor.execute(query, params)
     except:
         return make_response(jsonify({'status': 0, 'message': "Querying error!"}), 500)
     data = cursor.fetchall()
     cursor.close()
-    # finding specific goods
-    for x in data:
-        if x[0] == goods_id:
-            goods = x
+    goods = data[0]
     # calculate differences between updated data and warehouse data, to make demand transaction for forecasting
     if goods[1] > goods_qty_update:
         demand = goods[1] - goods_qty_update
