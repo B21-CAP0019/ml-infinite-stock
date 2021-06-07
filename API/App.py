@@ -255,9 +255,9 @@ def goods_update():
     # === API Functionality ===
     goods_id = data['goods_id']
     goods_name_update = data['goods_name']
-    goods_qty_update = data['goods_quantity']
+    goods_qty_update = float(data['goods_quantity'])
     goods_unit_update = data['goods_unit']
-    goods_price_update = data['goods_price']
+    goods_price_update = int(data['goods_price'])
     # Querying warehouse data
     current_user = current_user[0][0]
     try:
