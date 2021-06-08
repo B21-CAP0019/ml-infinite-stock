@@ -52,7 +52,7 @@
 
 | Endpoint API                      | Response Body                                         | Status Code       |
 |-----------------------------------|-------------------------------------------------------|-------------------|
-|/auth/signup                       | {"status":Int, "message":String, "error":String}            | 201               |
+|/auth/signup                       | {status:Int, message:String, error:String}            | 201               |
 |/auth/signin                       | {data:{public_id:String, full_name:String, shop_name:String}, status:Int, message:String}| 200|
 |/warehouse/goods/create            | {status:Int, message:String}                          | 201               |
 |/warehouse/goods/search/name       | {data:{goods_name:String, goods_quantity:Float, goods_unit:String, goods_price:Int}, status:Int, message:String} | 200 |
