@@ -20,6 +20,7 @@
 
 ### Request
 #### Authentication
+
 | Endpoint API          | Request Body (form-data) |        |
 |-----------------------|--------------------------|
 |/auth/signup           | email, password          |
