@@ -1,7 +1,6 @@
-# ml-infinite-stock
-## InfiniteStock API Documentation
-### Introduction
-#### Overview of InfiniteStock APIs:
+# InfiniteStock API Documentation
+## Introduction
+### Overview of InfiniteStock APIs:
 
 | Methods   | Endpoint API                              | Usage                                         |
 |-----------|-------------------------------------------|-----------------------------------------------|
@@ -18,8 +17,8 @@
 | GET       | /warehouse/goods/report/goodsout          | Get report data for item data out             |
 | GET       | /warehouse/goods/report/goodsin           | Get report data for item data in              |
 
-### Request
-#### Authentication
+## Request
+### Authentication
 
 | Endpoint API          | Request Body (form-data) |
 |-----------------------|--------------------------|
@@ -29,7 +28,7 @@
 |-----------------------|---------------------------------|
 |/auth/signin           | email, password                 |
 
-#### Services
+### Services
 | Endpoint API           | Request Body (form-data)                                                |
 |------------------------|-------------------------------------------------------------------------|
 | /warehouse/goods/create| public_id, goods_name, goods_quantity, goods_unit, goods_price          |
@@ -49,11 +48,15 @@
 |/warehouse/goods/delete/<goods_id>         | goods_id                          |
 |/warehouse/goods/demand/predict/<goods_id> | goods_id                          |
 
-### Response
+## Response
 
 | Endpoint API                      | Response Body                                         | Status Code       |
 |-----------------------------------|-------------------------------------------------------|-------------------|
-|/auth/signup                       | {status:Int, message:String, error:String}            | 201               |
+|/auth/signup                       | ```javascript
+{
+    status:Int, 
+    message:String, 
+    error:String}```            | 201               |
 |/auth/signin                       | {data:{public_id:String, full_name:String, shop_name:String}, status:Int, message:String}| 200|
 |/warehouse/goods/create            | {status:Int, message:String}                          | 201               |
 |/warehouse/goods/search/name       | {data:{goods_name:String, goods_quantity:Float, goods_unit:String, goods_price:Int}, status:Int, message:String} | 200 |
