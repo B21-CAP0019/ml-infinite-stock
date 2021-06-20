@@ -1,3 +1,39 @@
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `public_id` varchar(80) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(200) NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `shop_name` varchar(150) DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `public_id` (`public_id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `password` (`password`)
+);
+
+LOCK TABLES `user` WRITE;
+INSERT INTO `user` VALUES (1,'5f7f20c6-8bf2-4897-8620-2fec54fe4b0e','caca_handika@gmail.com','sha256$z44pu7Do$d4fda4dc1556234596a8f567fccb54f7c7d3110d56a230f8e26286d06bfd515d',NULL,NULL),(2,'fb6e58f7-f53b-4da5-b0e4-6e697203cbcc','junior_aldi@gmail.com','sha256$rdOKtQpv$b6d7a1035c6d3cb6c145327212888ae7fcf5b5f888c3ae15ea9e2cbcfbb26fe3',NULL,NULL),(3,'c434ab5f-6ad6-49b4-8303-348f6975bbf4','rakha_wisesa@yaya.com','sha256$CrSGuIpA$c4773641fa404dc38dd40ffd7dfe17810662c0c5d1bded07ccc505f581a4c99a',NULL,NULL),(4,'77543bc2-c51d-4402-aac2-faeb5a29d1dd','suryono@gmail.com','sha256$G5OD9K9K$2cebc2100388b995f79888a99d258ae02b175e98289f178e769d6cc4d839943d',NULL,NULL),(5,'e04aae95-763a-46b2-91e5-1037894e8bda','filma_augustine@gmail.com','sha256$AciJiZ1F$ff1f1f2744ae40dcf61685910669133af125971d9536acf10c69a1a336c925cd',NULL,NULL),(6,'9eb7242b-e37b-4759-8752-22687a97805f','maesaroh@gmail.com','sha256$oxNRW17V$5226346ee79fafd6c602102737952088a0318888873a5b4deb48d8305d194da5',NULL,NULL),(7,'879c709a-e0d8-485c-9cd0-a865910024f4','jono_junu@yaya.com','sha256$zL825jNn$6322344e41ba4b5f14e5143d1c6f4e99c290903733a66ef402809bfe369226b3',NULL,NULL),(8,'9008e44c-916a-4e5a-8072-92f4a684041c','thony_yaya@gmail.com','sha256$AfP9IuEw$43c9e748d398aad024e84df98cacdb2bdb7fcbb335a5b1726ea7183bc804cd01',NULL,NULL),(9,'0c8cb527-dda9-42b6-838e-480e74bbc913','surya_julio@yaya.com','sha256$hHC68Vie$de3239c34945d5fed1669c0cca9913c24bae94b2ea0c1dfb0f2a41834fd2c944',NULL,NULL),(13,'ba6420a3-596d-4c1d-853d-3fa091ecd1a8','rakha_wisesa@juman.com','sha256$TXQm1mxD$75047e54d41978e78296e6a2e0640d745a83b60374ff68c1c1a0629ea8d02ade',NULL,NULL);
+UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `goods`;
+CREATE TABLE `goods` (
+  `goods_id` int NOT NULL AUTO_INCREMENT,
+  `goods_name` varchar(150) NOT NULL,
+  `goods_quantity` float NOT NULL,
+  `goods_unit` varchar(30) DEFAULT NULL,
+  `goods_price` int DEFAULT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`goods_id`),
+  UNIQUE KEY `goods_id` (`goods_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `goods_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
+);
+
+LOCK TABLES `goods` WRITE;
+INSERT INTO `goods` VALUES (1,'Masako',40,'pcs',500,2),(2,'Tepung Ayam Sasa',600,'pcs',2000,2),(3,'Gula Jawa',5,'kg',3000,2),(4,'Tepung maizena',5,'kg',5000,2),(5,'Tepung Bumbu Sasa',680,'pcs',4000,3),(6,'Tepung Maizena',10,'kg',5000,9),(7,'Micin Ajinomoto',25,'pcs',700,2);
+UNLOCK TABLES;
+
 DROP TABLE IF EXISTS `demandprediction`;
 CREATE TABLE `demandprediction` (
   `deman_prediction_id` int NOT NULL AUTO_INCREMENT,
@@ -26,24 +62,6 @@ LOCK TABLES `demandprediction` WRITE;
 INSERT INTO `demandprediction` VALUES (1,5,3,40,79.6,50,70,50,70,70,'2021-06-01 13:26:47'),(2,5,3,40,81,50,70,50,70,70,'2021-06-01 13:44:05'),(3,5,3,40,80.2,50,70,50,70,70,'2021-06-02 00:06:20'),(4,5,3,70,40,80,20,50,50,100,'2021-06-02 10:04:37'),(5,5,3,50,100,70,50,100,80,40,'2021-06-02 17:37:49');
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `goods`;
-CREATE TABLE `goods` (
-  `goods_id` int NOT NULL AUTO_INCREMENT,
-  `goods_name` varchar(150) NOT NULL,
-  `goods_quantity` float NOT NULL,
-  `goods_unit` varchar(30) DEFAULT NULL,
-  `goods_price` int DEFAULT NULL,
-  `user_id` int NOT NULL,
-  PRIMARY KEY (`goods_id`),
-  UNIQUE KEY `goods_id` (`goods_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `goods_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
-);
-
-LOCK TABLES `goods` WRITE;
-INSERT INTO `goods` VALUES (1,'Masako',40,'pcs',500,2),(2,'Tepung Ayam Sasa',600,'pcs',2000,2),(3,'Gula Jawa',5,'kg',3000,2),(4,'Tepung maizena',5,'kg',5000,2),(5,'Tepung Bumbu Sasa',680,'pcs',4000,3),(6,'Tepung Maizena',10,'kg',5000,9),(7,'Micin Ajinomoto',25,'pcs',700,2);
-UNLOCK TABLES;
-
 DROP TABLE IF EXISTS `historygoodsin`;
 CREATE TABLE `historygoodsin` (
   `history_id` int NOT NULL AUTO_INCREMENT,
@@ -58,24 +76,6 @@ CREATE TABLE `historygoodsin` (
 
 LOCK TABLES `historygoodsin` WRITE;
 INSERT INTO `historygoodsin` VALUES (1,2,50,'2021-06-07 15:07:47'),(2,2,60,'2021-06-07 15:15:46'),(3,2,110,'2021-06-07 15:15:52'),(4,2,280,'2021-06-07 15:15:59'),(5,5,200,'2021-06-07 15:19:40'),(6,5,80,'2021-06-07 15:19:46'),(7,5,200,'2021-06-07 15:19:49'),(8,3,3,'2021-06-07 15:24:27');
-UNLOCK TABLES;
-
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `user_id` int NOT NULL AUTO_INCREMENT,
-  `public_id` varchar(80) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password` varchar(200) NOT NULL,
-  `full_name` varchar(100) DEFAULT NULL,
-  `shop_name` varchar(150) DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `public_id` (`public_id`),
-  UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `password` (`password`)
-);
-
-LOCK TABLES `user` WRITE;
-INSERT INTO `user` VALUES (1,'5f7f20c6-8bf2-4897-8620-2fec54fe4b0e','caca_handika@gmail.com','sha256$z44pu7Do$d4fda4dc1556234596a8f567fccb54f7c7d3110d56a230f8e26286d06bfd515d',NULL,NULL),(2,'fb6e58f7-f53b-4da5-b0e4-6e697203cbcc','junior_aldi@gmail.com','sha256$rdOKtQpv$b6d7a1035c6d3cb6c145327212888ae7fcf5b5f888c3ae15ea9e2cbcfbb26fe3',NULL,NULL),(3,'c434ab5f-6ad6-49b4-8303-348f6975bbf4','rakha_wisesa@yaya.com','sha256$CrSGuIpA$c4773641fa404dc38dd40ffd7dfe17810662c0c5d1bded07ccc505f581a4c99a',NULL,NULL),(4,'77543bc2-c51d-4402-aac2-faeb5a29d1dd','suryono@gmail.com','sha256$G5OD9K9K$2cebc2100388b995f79888a99d258ae02b175e98289f178e769d6cc4d839943d',NULL,NULL),(5,'e04aae95-763a-46b2-91e5-1037894e8bda','filma_augustine@gmail.com','sha256$AciJiZ1F$ff1f1f2744ae40dcf61685910669133af125971d9536acf10c69a1a336c925cd',NULL,NULL),(6,'9eb7242b-e37b-4759-8752-22687a97805f','maesaroh@gmail.com','sha256$oxNRW17V$5226346ee79fafd6c602102737952088a0318888873a5b4deb48d8305d194da5',NULL,NULL),(7,'879c709a-e0d8-485c-9cd0-a865910024f4','jono_junu@yaya.com','sha256$zL825jNn$6322344e41ba4b5f14e5143d1c6f4e99c290903733a66ef402809bfe369226b3',NULL,NULL),(8,'9008e44c-916a-4e5a-8072-92f4a684041c','thony_yaya@gmail.com','sha256$AfP9IuEw$43c9e748d398aad024e84df98cacdb2bdb7fcbb335a5b1726ea7183bc804cd01',NULL,NULL),(9,'0c8cb527-dda9-42b6-838e-480e74bbc913','surya_julio@yaya.com','sha256$hHC68Vie$de3239c34945d5fed1669c0cca9913c24bae94b2ea0c1dfb0f2a41834fd2c944',NULL,NULL),(13,'ba6420a3-596d-4c1d-853d-3fa091ecd1a8','rakha_wisesa@juman.com','sha256$TXQm1mxD$75047e54d41978e78296e6a2e0640d745a83b60374ff68c1c1a0629ea8d02ade',NULL,NULL);
 UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `warehousedemand`;
